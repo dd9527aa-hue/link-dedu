@@ -1,0 +1,3053 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多用户智能去重系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark-color);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* 登录注册页面样式 */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+        
+        .auth-box {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .auth-header h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #6c757d;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .auth-tab.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+        
+        .auth-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 10px;
+        }
+        
+        .auth-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        
+        .auth-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        /* 头部样式 */
+        .header {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px 40px;
+            margin-bottom: 25px;
+            box-shadow: var(--box-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        
+        .logo-text h1 {
+            font-size: 24px;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+        
+        .logo-text .tagline {
+            color: #6c757d;
+            font-size: 12px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .user-email {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .logout-btn {
+            padding: 8px 16px;
+            background: var(--light-color);
+            border: none;
+            border-radius: 6px;
+            color: var(--dark-color);
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .logout-btn:hover {
+            background: #e9ecef;
+        }
+        
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 10px 20px;
+            background: var(--light-color);
+            border-radius: 8px;
+            min-width: 120px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 25px;
+        }
+        
+        /* 侧边栏 */
+        .sidebar {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+        }
+        
+        .user-profile {
+            padding: 30px 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            text-align: center;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 600;
+        }
+        
+        .profile-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .profile-email {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+        
+        .profile-stat {
+            text-align: center;
+        }
+        
+        .profile-stat-value {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .profile-stat-label {
+            font-size: 10px;
+            opacity: 0.8;
+        }
+        
+        .nav-menu {
+            padding: 20px 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 25px;
+            color: var(--dark-color);
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 4px solid transparent;
+            cursor: pointer;
+        }
+        
+        .nav-item:hover {
+            background: var(--light-color);
+            color: var(--primary-color);
+        }
+        
+        .nav-item.active {
+            background: var(--light-color);
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .nav-icon {
+            width: 24px;
+            text-align: center;
+        }
+        
+        /* 内容卡片 */
+        .content-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            display: none;
+        }
+        
+        .content-card.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .card-header {
+            padding: 25px 30px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .card-title {
+            font-size: 22px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-title i {
+            color: var(--secondary-color);
+        }
+        
+        .card-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .card-body {
+            padding: 30px;
+        }
+        
+        /* 主库选择器 */
+        .library-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .library-tab {
+            padding: 12px 24px;
+            background: var(--light-color);
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .library-tab:hover {
+            border-color: var(--primary-color);
+        }
+        
+        .library-tab.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .library-count {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        
+        /* 输入区域样式 */
+        .input-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .section-label i {
+            color: var(--primary-color);
+        }
+        
+        .textarea-container {
+            position: relative;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+            transition: var(--transition);
+            font-family: 'Consolas', monospace;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+        
+        .textarea-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        /* 控制面板 */
+        .control-panel {
+            background: var(--light-color);
+            border-radius: 10px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        .control-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        select, input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: var(--transition);
+            background: white;
+        }
+        
+        select:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+        
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+        }
+        
+        /* 按钮样式 */
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 140px;
+            justify-content: center;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #4cc9f0, #4895ef);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f72585, #b5179e);
+            color: white;
+        }
+        
+        .btn-light {
+            background: var(--light-color);
+            color: var(--dark-color);
+        }
+        
+        /* 结果展示区 */
+        .results-section {
+            margin-top: 40px;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .results-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .results-stats {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .result-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .badge-new {
+            background: rgba(76, 201, 240, 0.1);
+            color: #4cc9f0;
+        }
+        
+        .badge-duplicate {
+            background: rgba(247, 37, 133, 0.1);
+            color: #f72585;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .result-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .result-card.new-links {
+            border-top: 4px solid #4cc9f0;
+        }
+        
+        .result-card.duplicate-links {
+            border-top: 4px solid #f72585;
+        }
+        
+        .result-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .result-card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+        
+        .result-count {
+            background: var(--light-color);
+            color: var(--dark-color);
+            padding: 3px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .result-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .result-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        .result-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .result-list::-webkit-scrollbar-thumb {
+            background: #c3cfe2;
+            border-radius: 3px;
+        }
+        
+        .link-item {
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            background: var(--light-color);
+            border-radius: 6px;
+            font-size: 13px;
+            line-height: 1.4;
+            word-break: break-all;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .link-item.new {
+            border-left: 3px solid #4cc9f0;
+        }
+        
+        .link-item.duplicate {
+            border-left: 3px solid #f72585;
+        }
+        
+        .link-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .link-action-btn {
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+        
+        .link-action-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--primary-color);
+        }
+        
+        /* 新增链接管理页面 */
+        .new-links-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .search-box {
+            position: relative;
+            min-width: 300px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        
+        .export-panel {
+            background: linear-gradient(135deg, rgba(76, 201, 240, 0.05), rgba(67, 97, 238, 0.05));
+            border-radius: 10px;
+            padding: 25px;
+            margin: 30px 0;
+            display: none;
+        }
+        
+        .export-panel.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .export-options {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .export-option {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 14px;
+        }
+        
+        .export-option:hover {
+            border-color: var(--primary-color);
+        }
+        
+        .export-option.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        /* 文件上传样式 */
+        .file-upload-area {
+            border: 2px dashed #c3cfe2;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            margin: 20px 0;
+        }
+        
+        .file-upload-area:hover {
+            border-color: var(--primary-color);
+            background: rgba(67, 97, 238, 0.02);
+        }
+        
+        .file-upload-area i {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .file-upload-text {
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        
+        .file-upload-hint {
+            font-size: 12px;
+            color: #adb5bd;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 250px 1fr;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .stats-bar {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .card-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                justify-content: center;
+            }
+            
+            .btn {
+                min-width: 100%;
+            }
+            
+            .library-selector {
+                flex-direction: column;
+            }
+            
+            .user-info {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+        
+        /* 加载动画 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #e9ecef;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 通知消息 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1001;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            border-left: 4px solid #4cc9f0;
+        }
+        
+        .notification.error {
+            border-left: 4px solid #f72585;
+        }
+        
+        .notification.info {
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .notification-icon {
+            font-size: 20px;
+        }
+        
+        .success .notification-icon { color: #4cc9f0; }
+        .error .notification-icon { color: #f72585; }
+        .info .notification-icon { color: var(--primary-color); }
+        
+        /* 用户管理页面 */
+        .user-list {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .user-card {
+            background: var(--light-color);
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: var(--transition);
+        }
+        
+        .user-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--box-shadow);
+        }
+        
+        .user-card-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 24px;
+        }
+        
+        .user-card-info {
+            flex: 1;
+        }
+        
+        .user-card-name {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 5px;
+        }
+        
+        .user-card-email {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .user-card-stats {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .user-card-stat {
+            text-align: center;
+        }
+        
+        .user-card-stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .user-card-stat-label {
+            font-size: 10px;
+            color: #6c757d;
+        }
+        
+        /* 管理按钮 */
+        .admin-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .admin-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .admin-btn.edit {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .admin-btn.delete {
+            background: var(--warning-color);
+            color: white;
+        }
+        
+        .admin-btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        /* 隐藏登录/注册页面 */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <!-- 登录/注册页面 -->
+    <div id="authPage" class="auth-container">
+        <div class="auth-box">
+            <div class="auth-header">
+                <div class="logo-icon" style="margin: 0 auto 20px;">
+                    <i class="fas fa-link"></i>
+                </div>
+                <h1>多用户智能去重系统</h1>
+                <p>注册账号，开始管理您的数据</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('login')">登录</button>
+                <button class="auth-tab" onclick="switchAuthTab('register')">注册</button>
+            </div>
+            
+            <!-- 登录表单 -->
+            <form id="loginForm" class="auth-form active" onsubmit="login(event)">
+                <div class="form-group">
+                    <label for="loginEmail">邮箱地址</label>
+                    <input type="email" id="loginEmail" placeholder="请输入邮箱" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码" required>
+                </div>
+                <button type="submit" class="auth-button">登录</button>
+            </form>
+            
+            <!-- 注册表单 -->
+            <form id="registerForm" class="auth-form" onsubmit="register(event)">
+                <div class="form-group">
+                    <label for="registerName">用户名</label>
+                    <input type="text" id="registerName" placeholder="请输入用户名" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">邮箱地址</label>
+                    <input type="email" id="registerEmail" placeholder="请输入邮箱" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">密码</label>
+                    <input type="password" id="registerPassword" placeholder="至少6位字符" minlength="6" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">确认密码</label>
+                    <input type="password" id="confirmPassword" placeholder="再次输入密码" minlength="6" required>
+                </div>
+                <button type="submit" class="auth-button">注册</button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>注册即表示您同意我们的 <a href="#">服务条款</a> 和 <a href="#">隐私政策</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 主应用页面 -->
+    <div id="appPage" class="hidden">
+        <div class="container">
+            <!-- 头部 -->
+            <div class="header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>多用户智能去重系统</h1>
+                        <div class="tagline">安全 · 独立 · 多用户数据管理</div>
+                    </div>
+                </div>
+                
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalLinks">0</div>
+                        <div class="stat-label">总项目数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="twitterCount">0</div>
+                        <div class="stat-label">推特ID</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="groupCount">0</div>
+                        <div class="stat-label">群组链接</div>
+                    </div>
+                </div>
+                
+                <div class="user-info">
+                    <div class="user-avatar" id="headerAvatar">U</div>
+                    <div class="user-details">
+                        <div class="user-name" id="headerUserName">用户</div>
+                        <div class="user-email" id="headerUserEmail">user@example.com</div>
+                    </div>
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> 退出
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 主内容区 -->
+            <div class="main-content">
+                <!-- 侧边栏 -->
+                <div class="sidebar">
+                    <div class="user-profile">
+                        <div class="profile-avatar" id="profileAvatar">U</div>
+                        <div class="profile-name" id="profileName">用户</div>
+                        <div class="profile-email" id="profileEmail">user@example.com</div>
+                        <div class="profile-stats">
+                            <div class="profile-stat">
+                                <div class="profile-stat-value" id="profileTwitterCount">0</div>
+                                <div class="profile-stat-label">推特ID</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value" id="profileGroupCount">0</div>
+                                <div class="profile-stat-label">群组链接</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="nav-menu">
+                        <a href="#" class="nav-item active" onclick="switchTab('master')">
+                            <div class="nav-icon"><i class="fas fa-database"></i></div>
+                            <span>主库管理</span>
+                        </a>
+                        <a href="#" class="nav-item" onclick="switchTab('compare')">
+                            <div class="nav-icon"><i class="fas fa-exchange-alt"></i></div>
+                            <span>去重对比</span>
+                        </a>
+                        <a href="#" class="nav-item" onclick="switchTab('newLinks')">
+                            <div class="nav-icon"><i class="fas fa-plus-circle"></i></div>
+                            <span>新增管理</span>
+                        </a>
+                        <a href="#" class="nav-item" onclick="switchTab('settings')">
+                            <div class="nav-icon"><i class="fas fa-cog"></i></div>
+                            <span>系统设置</span>
+                        </a>
+                        <!-- 管理员才显示用户管理 -->
+                        <a href="#" class="nav-item hidden" onclick="switchTab('users')" id="usersTab">
+                            <div class="nav-icon"><i class="fas fa-users"></i></div>
+                            <span>用户管理</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 主库管理 -->
+                <div id="masterTab" class="content-card active">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-database"></i>
+                            多主库管理
+                        </div>
+                        <div class="card-badge" id="masterBadge">2 个主库</div>
+                    </div>
+                    <div class="card-body">
+                        <!-- 主库选择器 -->
+                        <div class="library-selector">
+                            <div class="library-tab active" onclick="switchLibrary('twitter')">
+                                <i class="fab fa-twitter"></i>
+                                推特ID主库
+                                <span class="library-count" id="twitterCountBadge">0</span>
+                            </div>
+                            <div class="library-tab" onclick="switchLibrary('group')">
+                                <i class="fas fa-users"></i>
+                                群组链接主库
+                                <span class="library-count" id="groupCountBadge">0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="input-section">
+                            <div class="section-label">
+                                <i class="fas fa-upload"></i>
+                                <span id="libraryTitle">导入推特ID</span>
+                            </div>
+                            <div class="textarea-container">
+                                <textarea id="masterInput" placeholder="请在此粘贴推特ID，每行一个ID...&#10;&#10;示例：&#10;elonmusk&#10;Twitter&#10;YouTube&#10;instagram"></textarea>
+                            </div>
+                            <div class="textarea-info">
+                                <span>已输入 <span id="masterLineCount">0</span> 个项目</span>
+                                <span>建议使用纯文本格式，每行一个项目</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 文件上传区域 -->
+                        <div class="file-upload-area" onclick="document.getElementById('fileInput').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <div class="file-upload-text">点击选择文件，或拖放文件到此处</div>
+                            <div class="file-upload-hint">支持 .txt、.csv 格式，最大 10MB</div>
+                        </div>
+                        <input type="file" id="fileInput" accept=".txt,.csv" style="display: none;" onchange="handleFileUpload(event)">
+                        
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" onclick="importMasterLibrary()">
+                                <i class="fas fa-file-import"></i>
+                                导入当前主库
+                            </button>
+                            <button class="btn btn-success" onclick="saveAllLibraries()">
+                                <i class="fas fa-save"></i>
+                                保存所有主库
+                            </button>
+                            <button class="btn btn-warning" onclick="clearCurrentLibrary()">
+                                <i class="fas fa-trash-alt"></i>
+                                清空当前主库
+                            </button>
+                        </div>
+                        
+                        <div class="control-panel">
+                            <div class="control-grid">
+                                <div class="control-group">
+                                    <label class="control-label">
+                                        <i class="fas fa-filter"></i>
+                                        主库说明
+                                    </label>
+                                    <div style="padding: 12px; background: white; border-radius: 8px; border: 2px solid #e9ecef;">
+                                        <div style="font-weight: 600; margin-bottom: 5px; color: var(--primary-color);" id="currentLibraryName">推特ID主库</div>
+                                        <div style="font-size: 13px; color: #6c757d;" id="currentLibraryDesc">
+                                            用于存储和去重推特用户ID，支持@用户名格式
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label">
+                                        <i class="fas fa-calendar"></i>
+                                        统计信息
+                                    </label>
+                                    <div style="padding: 12px; background: white; border-radius: 8px; border: 2px solid #e9ecef;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                            <span>项目数量：</span>
+                                            <span style="font-weight: 600;" id="libraryItemCount">0</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                            <span>最后更新：</span>
+                                            <span style="font-weight: 600;" id="libraryLastUpdated">--</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span>主库大小：</span>
+                                            <span style="font-weight: 600;" id="librarySize">0 KB</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 去重对比 -->
+                <div id="compareTab" class="content-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-exchange-alt"></i>
+                            去重对比
+                        </div>
+                        <div class="card-badge" id="compareBadge">准备对比</div>
+                    </div>
+                    <div class="card-body">
+                        <!-- 对比类型选择 -->
+                        <div class="library-selector" style="margin-bottom: 30px;">
+                            <div class="library-tab active" onclick="switchCompareType('twitter')">
+                                <i class="fab fa-twitter"></i>
+                                推特ID对比
+                            </div>
+                            <div class="library-tab" onclick="switchCompareType('group')">
+                                <i class="fas fa-users"></i>
+                                群组链接对比
+                            </div>
+                        </div>
+                        
+                        <div class="input-section">
+                            <div class="section-label">
+                                <i class="fas fa-plus"></i>
+                                <span id="compareInputLabel">输入新推特ID</span>
+                            </div>
+                            <div class="textarea-container">
+                                <textarea id="newLinksInput" placeholder="请在此粘贴需要对比的新推特ID，每行一个...&#10;&#10;系统将自动与对应的主库对比，找出新增ID"></textarea>
+                            </div>
+                            <div class="textarea-info">
+                                <span>已输入 <span id="newLinksLineCount">0</span> 个项目</span>
+                                <span>对比结果将在下方显示</span>
+                            </div>
+                        </div>
+                        
+                        <div class="control-panel">
+                            <div class="control-grid">
+                                <div class="control-group">
+                                    <label class="control-label">
+                                        <i class="fas fa-cogs"></i>
+                                        去重模式
+                                    </label>
+                                    <select id="dedupeMode">
+                                        <option value="exact">精确匹配（完全一致）</option>
+                                        <option value="caseInsensitive">不区分大小写</option>
+                                        <option value="ignoreAt">忽略@符号</option>
+                                    </select>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label">
+                                        <i class="fas fa-sliders-h"></i>
+                                        处理设置
+                                    </label>
+                                    <div class="checkbox-group">
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" id="trimSpaces" checked>
+                                            <label>去除前后空格</label>
+                                        </div>
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" id="removeEmpty" checked>
+                                            <label>忽略空行</label>
+                                        </div>
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" id="toLowerCase">
+                                            <label>转换为小写</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" onclick="startComparison()">
+                                <i class="fas fa-play-circle"></i>
+                                开始对比
+                            </button>
+                            <button class="btn btn-success" onclick="addAllToCurrentLibrary()">
+                                <i class="fas fa-plus-square"></i>
+                                全部添加到主库
+                            </button>
+                            <button class="btn btn-light" onclick="clearComparison()">
+                                <i class="fas fa-eraser"></i>
+                                清空输入
+                            </button>
+                        </div>
+                        
+                        <!-- 对比结果 -->
+                        <div class="results-section" id="resultsSection" style="display: none;">
+                            <div class="results-header">
+                                <div class="results-title">对比结果</div>
+                                <div class="results-stats">
+                                    <div class="result-badge badge-new" id="newCountBadge">新增：0</div>
+                                    <div class="result-badge badge-duplicate" id="duplicateCountBadge">重复：0</div>
+                                </div>
+                            </div>
+                            <div class="results-grid">
+                                <div class="result-card new-links">
+                                    <div class="result-card-header">
+                                        <div class="result-card-title">
+                                            <i class="fas fa-plus-circle" style="color: #4cc9f0;"></i>
+                                            <span id="newItemsLabel">新增ID</span>
+                                        </div>
+                                        <div class="result-count" id="newLinksCountCard">0</div>
+                                    </div>
+                                    <div class="result-list" id="newLinksList">
+                                        <!-- 新增项目列表 -->
+                                    </div>
+                                </div>
+                                <div class="result-card duplicate-links">
+                                    <div class="result-card-header">
+                                        <div class="result-card-title">
+                                            <i class="fas fa-exclamation-circle" style="color: #f72585;"></i>
+                                            <span id="duplicateItemsLabel">重复ID</span>
+                                        </div>
+                                        <div class="result-count" id="duplicateLinksCountCard">0</div>
+                                    </div>
+                                    <div class="result-list" id="duplicateLinksList">
+                                        <!-- 重复项目列表 -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <button class="btn btn-success" onclick="exportNewItems()">
+                                    <i class="fas fa-download"></i>
+                                    导出新增项目
+                                </button>
+                                <button class="btn btn-primary" onclick="copyNewItems()">
+                                    <i class="fas fa-copy"></i>
+                                    复制新增项目
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 新增管理 -->
+                <div id="newLinksTab" class="content-card">
+                    <!-- 内容将动态生成 -->
+                </div>
+                
+                <!-- 系统设置 -->
+                <div id="settingsTab" class="content-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-cog"></i>
+                            系统设置
+                        </div>
+                        <div class="card-badge">配置</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="control-panel">
+                            <div class="control-grid">
+                                <div class="control-group">
+                                    <label class="control-label">
+                                        <i class="fas fa-palette"></i>
+                                        主题颜色
+                                    </label>
+                                    <select id="themeColor">
+                                        <option value="default">默认蓝色主题</option>
+                                        <option value="green">绿色主题</option>
+                                        <option value="purple">紫色主题</option>
+                                        <option value="dark">深色主题</option>
+                                    </select>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label">
+                                        <i class="fas fa-language"></i>
+                                        界面语言
+                                    </label>
+                                    <select id="language">
+                                        <option value="zh">简体中文</option>
+                                        <option value="en">English</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="control-grid" style="margin-top: 30px;">
+                                <div class="control-group">
+                                    <label class="control-label">
+                                        <i class="fas fa-history"></i>
+                                        数据保留时间
+                                    </label>
+                                    <select id="dataRetention">
+                                        <option value="7">7天</option>
+                                        <option value="30">30天</option>
+                                        <option value="90">90天</option>
+                                        <option value="365">永久保留</option>
+                                    </select>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label">
+                                        <i class="fas fa-bell"></i>
+                                        通知设置
+                                    </label>
+                                    <div class="checkbox-group">
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" id="notifySuccess" checked>
+                                            <label>成功通知</label>
+                                        </div>
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" id="notifyError" checked>
+                                            <label>错误通知</label>
+                                        </div>
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" id="notifyInfo">
+                                            <label>信息通知</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" onclick="saveSettings()">
+                                <i class="fas fa-save"></i>
+                                保存设置
+                            </button>
+                            <button class="btn btn-light" onclick="resetSettings()">
+                                <i class="fas fa-undo"></i>
+                                恢复默认
+                            </button>
+                            <button class="btn btn-warning" onclick="clearUserData()">
+                                <i class="fas fa-trash"></i>
+                                清除个人数据
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 用户管理（仅管理员可见） -->
+                <div id="usersTab" class="content-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-users"></i>
+                            用户管理
+                        </div>
+                        <div class="card-badge">管理员</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="user-list" id="userList">
+                            <!-- 用户列表将动态生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 全局变量
+        let currentUser = null;
+        let currentLibrary = 'twitter';
+        let currentCompareType = 'twitter';
+        let twitterLibrary = new Set();
+        let groupLibrary = new Set();
+        let newUniqueItems = [];
+        let currentExportFormat = 'text';
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查是否已登录
+            checkLoginStatus();
+        });
+        
+        // 检查登录状态
+        function checkLoginStatus() {
+            const userData = localStorage.getItem('currentUser');
+            if (userData) {
+                currentUser = JSON.parse(userData);
+                showAppPage();
+                loadUserData();
+                setupEventListeners();
+                updateStats();
+            } else {
+                showAuthPage();
+            }
+        }
+        
+        // 切换认证标签
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.auth-form').forEach(form => {
+                form.classList.remove('active');
+            });
+            
+            document.querySelector(`.auth-tab[onclick="switchAuthTab('${tab}')"]`).classList.add('active');
+            document.getElementById(`${tab}Form`).classList.add('active');
+        }
+        
+        // 注册
+        function register(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // 验证
+            if (password !== confirmPassword) {
+                showNotification('两次输入的密码不一致！', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showNotification('密码至少需要6位字符！', 'error');
+                return;
+            }
+            
+            // 检查邮箱是否已注册
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            if (users.find(user => user.email === email)) {
+                showNotification('该邮箱已注册！', 'error');
+                return;
+            }
+            
+            // 创建新用户
+            const newUser = {
+                id: generateUserId(),
+                name: name,
+                email: email,
+                password: hashPassword(password),
+                role: users.length === 0 ? 'admin' : 'user', // 第一个用户为管理员
+                createdAt: new Date().toISOString(),
+                avatarColor: getRandomColor(),
+                stats: {
+                    twitterCount: 0,
+                    groupCount: 0,
+                    lastActive: new Date().toISOString()
+                }
+            };
+            
+            // 保存用户
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            // 自动登录
+            currentUser = newUser;
+            localStorage.setItem('currentUser', JSON.stringify(newUser));
+            
+            showNotification('注册成功！欢迎使用多用户去重系统', 'success');
+            setTimeout(() => {
+                showAppPage();
+                loadUserData();
+            }, 1000);
+        }
+        
+        // 登录
+        function login(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            // 查找用户
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.email === email && u.password === hashPassword(password));
+            
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                
+                // 更新最后活跃时间
+                user.stats.lastActive = new Date().toISOString();
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                showNotification('登录成功！', 'success');
+                setTimeout(() => {
+                    showAppPage();
+                    loadUserData();
+                }, 500);
+            } else {
+                showNotification('邮箱或密码错误！', 'error');
+            }
+        }
+        
+        // 登出
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                currentUser = null;
+                localStorage.removeItem('currentUser');
+                showNotification('已退出登录', 'info');
+                setTimeout(() => {
+                    showAuthPage();
+                    resetAuthForms();
+                }, 500);
+            }
+        }
+        
+        // 显示认证页面
+        function showAuthPage() {
+            document.getElementById('authPage').classList.remove('hidden');
+            document.getElementById('appPage').classList.add('hidden');
+        }
+        
+        // 显示应用页面
+        function showAppPage() {
+            document.getElementById('authPage').classList.add('hidden');
+            document.getElementById('appPage').classList.remove('hidden');
+            
+            // 更新用户界面
+            updateUserInterface();
+        }
+        
+        // 重置认证表单
+        function resetAuthForms() {
+            document.getElementById('loginForm').reset();
+            document.getElementById('registerForm').reset();
+            switchAuthTab('login');
+        }
+        
+        // 更新用户界面
+        function updateUserInterface() {
+            if (!currentUser) return;
+            
+            // 更新头部
+            document.getElementById('headerAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+            document.getElementById('headerUserName').textContent = currentUser.name;
+            document.getElementById('headerUserEmail').textContent = currentUser.email;
+            
+            // 更新侧边栏
+            document.getElementById('profileAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+            document.getElementById('profileAvatar').style.background = currentUser.avatarColor;
+            document.getElementById('profileName').textContent = currentUser.name;
+            document.getElementById('profileEmail').textContent = currentUser.email;
+            
+            // 如果是管理员，显示用户管理标签
+            if (currentUser.role === 'admin') {
+                document.getElementById('usersTab').classList.remove('hidden');
+            } else {
+                document.getElementById('usersTab').classList.add('hidden');
+            }
+        }
+        
+        // 加载用户数据
+        function loadUserData() {
+            if (!currentUser) return;
+            
+            const userDataKey = `userData_${currentUser.id}`;
+            const savedData = localStorage.getItem(userDataKey);
+            
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                twitterLibrary = new Set(data.twitter || []);
+                groupLibrary = new Set(data.group || []);
+            } else {
+                twitterLibrary = new Set();
+                groupLibrary = new Set();
+            }
+            
+            loadSettings();
+            updateStats();
+            updateLibraryDisplay();
+        }
+        
+        // 保存用户数据
+        function saveUserData() {
+            if (!currentUser) return;
+            
+            const userDataKey = `userData_${currentUser.id}`;
+            const data = {
+                twitter: Array.from(twitterLibrary),
+                group: Array.from(groupLibrary),
+                lastUpdated: new Date().toISOString()
+            };
+            
+            localStorage.setItem(userDataKey, JSON.stringify(data));
+            
+            // 更新用户统计
+            updateUserStats();
+        }
+        
+        // 更新用户统计
+        function updateUserStats() {
+            if (!currentUser) return;
+            
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            
+            if (userIndex !== -1) {
+                users[userIndex].stats.twitterCount = twitterLibrary.size;
+                users[userIndex].stats.groupCount = groupLibrary.size;
+                users[userIndex].stats.lastActive = new Date().toISOString();
+                
+                localStorage.setItem('users', JSON.stringify(users));
+                currentUser = users[userIndex];
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                updateStats();
+            }
+        }
+        
+        // 生成用户ID
+        function generateUserId() {
+            return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        // 简单密码哈希
+        function hashPassword(password) {
+            // 注意：这只是简单的演示，实际生产环境应使用更安全的哈希算法
+            return btoa(password + '_salt');
+        }
+        
+        // 生成随机颜色
+        function getRandomColor() {
+            const colors = [
+                'linear-gradient(135deg, #4361ee, #3a0ca3)',
+                'linear-gradient(135deg, #4cc9f0, #4895ef)',
+                'linear-gradient(135deg, #f72585, #b5179e)',
+                'linear-gradient(135deg, #2a9d8f, #264653)',
+                'linear-gradient(135deg, #e9c46a, #f4a261)',
+                'linear-gradient(135deg, #7209b7, #3a0ca3)'
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 监听主库输入变化
+            const masterInput = document.getElementById('masterInput');
+            if (masterInput) {
+                masterInput.addEventListener('input', function() {
+                    const lines = this.value.split('\n').filter(line => line.trim());
+                    document.getElementById('masterLineCount').textContent = lines.length;
+                });
+            }
+            
+            // 监听新链接输入变化
+            const newLinksInput = document.getElementById('newLinksInput');
+            if (newLinksInput) {
+                newLinksInput.addEventListener('input', function() {
+                    const lines = this.value.split('\n').filter(line => line.trim());
+                    document.getElementById('newLinksLineCount').textContent = lines.length;
+                });
+            }
+        }
+        
+        // 切换标签页
+        function switchTab(tabId) {
+            // 更新导航菜单
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.nav-item').classList.add('active');
+            
+            // 更新内容卡片
+            document.querySelectorAll('.content-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.getElementById(tabId + 'Tab').classList.add('active');
+            
+            // 特殊处理
+            if (tabId === 'newLinks') {
+                generateNewItemsPage();
+            } else if (tabId === 'users' && currentUser?.role === 'admin') {
+                generateUsersPage();
+            }
+        }
+        
+        // 切换主库
+        function switchLibrary(libraryType) {
+            currentLibrary = libraryType;
+            
+            // 更新标签状态
+            document.querySelectorAll('.library-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.closest('.library-tab').classList.add('active');
+            
+            // 更新界面显示
+            updateLibraryDisplay();
+        }
+        
+        // 切换对比类型
+        function switchCompareType(type) {
+            currentCompareType = type;
+            
+            // 更新标签状态
+            document.querySelectorAll('#compareTab .library-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.closest('.library-tab').classList.add('active');
+            
+            // 更新界面文本
+            updateCompareDisplay();
+        }
+        
+        // 更新主库显示
+        function updateLibraryDisplay() {
+            const library = getCurrentLibrary();
+            const count = library.size;
+            
+            // 更新标题和描述
+            if (currentLibrary === 'twitter') {
+                document.getElementById('libraryTitle').textContent = '导入推特ID';
+                document.getElementById('currentLibraryName').textContent = '推特ID主库';
+                document.getElementById('currentLibraryDesc').textContent = '用于存储和去重推特用户ID，支持@用户名格式，不区分大小写';
+                document.getElementById('masterInput').placeholder = '请在此粘贴推特ID，每行一个ID...\n\n示例：\nelonmusk\nTwitter\nYouTube\ninstagram';
+            } else {
+                document.getElementById('libraryTitle').textContent = '导入群组链接';
+                document.getElementById('currentLibraryName').textContent = '群组链接主库';
+                document.getElementById('currentLibraryDesc').textContent = '用于存储和去重Telegram、Discord等群组链接，支持完整URL格式';
+                document.getElementById('masterInput').placeholder = '请在此粘贴群组链接，每行一个链接...\n\n示例：\nhttps://t.me/example_group\nhttps://discord.gg/developers';
+            }
+            
+            // 更新统计信息
+            document.getElementById('libraryItemCount').textContent = count;
+            document.getElementById('twitterCountBadge').textContent = twitterLibrary.size;
+            document.getElementById('groupCountBadge').textContent = groupLibrary.size;
+            
+            // 清空输入框，但保留行数统计
+            document.getElementById('masterInput').value = '';
+            document.getElementById('masterLineCount').textContent = '0';
+        }
+        
+        // 更新对比显示
+        function updateCompareDisplay() {
+            if (currentCompareType === 'twitter') {
+                document.getElementById('compareInputLabel').textContent = '输入新推特ID';
+                document.getElementById('newItemsLabel').textContent = '新增ID';
+                document.getElementById('duplicateItemsLabel').textContent = '重复ID';
+                document.getElementById('newLinksInput').placeholder = '请在此粘贴需要对比的新推特ID，每行一个...\n\n系统将自动与推特ID主库对比，找出新增ID';
+            } else {
+                document.getElementById('compareInputLabel').textContent = '输入新群组链接';
+                document.getElementById('newItemsLabel').textContent = '新增链接';
+                document.getElementById('duplicateItemsLabel').textContent = '重复链接';
+                document.getElementById('newLinksInput').placeholder = '请在此粘贴需要对比的新群组链接，每行一个...\n\n系统将自动与群组链接主库对比，找出新增链接';
+            }
+        }
+        
+        // 获取当前主库
+        function getCurrentLibrary() {
+            return currentLibrary === 'twitter' ? twitterLibrary : groupLibrary;
+        }
+        
+        // 获取当前对比主库
+        function getCompareLibrary() {
+            return currentCompareType === 'twitter' ? twitterLibrary : groupLibrary;
+        }
+        
+        // 导入主库
+        function importMasterLibrary() {
+            const text = document.getElementById('masterInput').value.trim();
+            if (!text) {
+                showNotification('请输入内容！', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            setTimeout(() => {
+                try {
+                    const items = parseItems(text);
+                    const library = getCurrentLibrary();
+                    const beforeCount = library.size;
+                    
+                    items.forEach(item => {
+                        if (item.trim()) {
+                            library.add(normalizeItem(item.trim(), currentLibrary));
+                        }
+                    });
+                    
+                    const addedCount = library.size - beforeCount;
+                    updateStats();
+                    saveUserData();
+                    
+                    showNotification(`成功导入 ${items.length} 个项目，新增 ${addedCount} 个唯一项目`, 'success');
+                } catch (error) {
+                    showNotification('导入过程中出现错误：' + error.message, 'error');
+                } finally {
+                    showLoading(false);
+                }
+            }, 500);
+        }
+        
+        // 保存所有主库
+        function saveAllLibraries() {
+            saveUserData();
+            showNotification('所有主库已保存！', 'success');
+        }
+        
+        // 清空当前主库
+        function clearCurrentLibrary() {
+            const library = getCurrentLibrary();
+            if (library.size === 0) {
+                showNotification('当前主库已经是空的！', 'info');
+                return;
+            }
+            
+            if (confirm(`确定要清空${currentLibrary === 'twitter' ? '推特ID' : '群组链接'}主库吗？此操作不可恢复！`)) {
+                library.clear();
+                document.getElementById('masterInput').value = '';
+                document.getElementById('masterLineCount').textContent = '0';
+                updateStats();
+                saveUserData();
+                showNotification('主库已清空！', 'success');
+            }
+        }
+        
+        // 处理文件上传
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('masterInput').value = e.target.result;
+                const lines = e.target.result.split('\n').filter(line => line.trim());
+                document.getElementById('masterLineCount').textContent = lines.length;
+                showNotification(`已加载文件：${file.name}`, 'success');
+            };
+            reader.readAsText(file);
+        }
+        
+        // 更新统计
+        function updateStats() {
+            const twitterCount = twitterLibrary.size;
+            const groupCount = groupLibrary.size;
+            const total = twitterCount + groupCount;
+            
+            // 更新头部统计
+            document.getElementById('totalLinks').textContent = total;
+            document.getElementById('twitterCount').textContent = twitterCount;
+            document.getElementById('groupCount').textContent = groupCount;
+            
+            // 更新主库页面徽章
+            document.getElementById('masterBadge').textContent = `${total} 个项目`;
+            
+            // 更新主库标签徽章
+            document.getElementById('twitterCountBadge').textContent = twitterCount;
+            document.getElementById('groupCountBadge').textContent = groupCount;
+            
+            // 更新当前主库统计
+            const currentLib = getCurrentLibrary();
+            document.getElementById('libraryItemCount').textContent = currentLib.size;
+            
+            // 更新时间
+            const now = new Date();
+            document.getElementById('libraryLastUpdated').textContent = now.toLocaleString();
+            
+            // 计算大小（粗略估计）
+            const size = JSON.stringify(Array.from(currentLib)).length;
+            document.getElementById('librarySize').textContent = `${(size / 1024).toFixed(2)} KB`;
+            
+            // 更新侧边栏统计
+            document.getElementById('profileTwitterCount').textContent = twitterCount;
+            document.getElementById('profileGroupCount').textContent = groupCount;
+        }
+        
+        // 开始对比
+        function startComparison() {
+            const newItemsText = document.getElementById('newLinksInput').value.trim();
+            if (!newItemsText) {
+                showNotification('请输入新项目！', 'error');
+                return;
+            }
+            
+            const library = getCompareLibrary();
+            if (library.size === 0) {
+                showNotification('对应主库为空，请先导入主库项目！', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            setTimeout(() => {
+                try {
+                    const newItems = parseItems(newItemsText);
+                    const mode = document.getElementById('dedupeMode').value;
+                    
+                    newUniqueItems = [];
+                    let duplicateItems = [];
+                    
+                    newItems.forEach(item => {
+                        if (!item.trim()) return;
+                        
+                        const normalizedItem = normalizeItem(item.trim(), currentCompareType);
+                        let isDuplicate = false;
+                        
+                        // 检查是否重复
+                        switch(mode) {
+                            case 'exact':
+                                isDuplicate = library.has(normalizedItem);
+                                break;
+                            case 'caseInsensitive':
+                                isDuplicate = Array.from(library).some(libItem => 
+                                    libItem.toLowerCase() === normalizedItem.toLowerCase()
+                                );
+                                break;
+                            case 'ignoreAt':
+                                const cleanItem = item.replace(/^@/, '');
+                                const cleanNormalized = normalizedItem.replace(/^@/, '');
+                                isDuplicate = Array.from(library).some(libItem => 
+                                    libItem.replace(/^@/, '') === cleanNormalized
+                                );
+                                break;
+                        }
+                        
+                        if (isDuplicate) {
+                            duplicateItems.push(item);
+                        } else {
+                            newUniqueItems.push({
+                                original: item,
+                                normalized: normalizedItem,
+                                selected: true
+                            });
+                        }
+                    });
+                    
+                    // 显示结果
+                    displayComparisonResults(newUniqueItems, duplicateItems);
+                    
+                    showNotification(`对比完成！发现 ${newUniqueItems.length} 个新增项目，${duplicateItems.length} 个重复项目`, 'success');
+                    
+                } catch (error) {
+                    showNotification('对比过程中出现错误：' + error.message, 'error');
+                } finally {
+                    showLoading(false);
+                }
+            }, 800);
+        }
+        
+        // 显示对比结果
+        function displayComparisonResults(uniqueItems, duplicateItems) {
+            // 显示结果区域
+            document.getElementById('resultsSection').style.display = 'block';
+            
+            // 更新徽章
+            document.getElementById('newCountBadge').textContent = `新增：${uniqueItems.length}`;
+            document.getElementById('duplicateCountBadge').textContent = `重复：${duplicateItems.length}`;
+            
+            // 更新卡片计数
+            document.getElementById('newLinksCountCard').textContent = uniqueItems.length;
+            document.getElementById('duplicateLinksCountCard').textContent = duplicateItems.length;
+            
+            // 显示新增项目
+            const newLinksList = document.getElementById('newLinksList');
+            newLinksList.innerHTML = '';
+            
+            uniqueItems.slice(0, 20).forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'link-item new';
+                itemElement.innerHTML = `
+                    <span>${item.original}</span>
+                    <div class="link-actions">
+                        <button class="link-action-btn" onclick="copySingleItem('${item.original.replace(/'/g, "\\'")}')" title="复制">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="link-action-btn" onclick="addSingleToCurrentLibrary('${item.original.replace(/'/g, "\\'")}')" title="添加到主库">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                `;
+                newLinksList.appendChild(itemElement);
+            });
+            
+            // 如果项目太多，显示提示
+            if (uniqueItems.length > 20) {
+                const moreItem = document.createElement('div');
+                moreItem.className = 'link-item new';
+                moreItem.innerHTML = `<span style="color: #6c757d;">... 还有 ${uniqueItems.length - 20} 个项目未显示</span>`;
+                newLinksList.appendChild(moreItem);
+            }
+            
+            // 显示重复项目
+            const duplicateLinksList = document.getElementById('duplicateLinksList');
+            duplicateLinksList.innerHTML = '';
+            
+            duplicateItems.slice(0, 20).forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'link-item duplicate';
+                itemElement.innerHTML = `
+                    <span>${item}</span>
+                    <div class="link-actions">
+                        <button class="link-action-btn" onclick="copySingleItem('${item.replace(/'/g, "\\'")}')" title="复制">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                `;
+                duplicateLinksList.appendChild(itemElement);
+            });
+            
+            // 如果项目太多，显示提示
+            if (duplicateItems.length > 20) {
+                const moreItem = document.createElement('div');
+                moreItem.className = 'link-item duplicate';
+                moreItem.innerHTML = `<span style="color: #6c757d;">... 还有 ${duplicateItems.length - 20} 个项目未显示</span>`;
+                duplicateLinksList.appendChild(moreItem);
+            }
+            
+            // 更新对比页面徽章
+            document.getElementById('compareBadge').textContent = '对比完成';
+        }
+        
+        // 添加所有新增项目到主库
+        function addAllToCurrentLibrary() {
+            if (newUniqueItems.length === 0) {
+                showNotification('没有新增项目可添加！', 'warning');
+                return;
+            }
+            
+            const library = getCompareLibrary();
+            let addedCount = 0;
+            
+            newUniqueItems.forEach(item => {
+                if (!library.has(item.normalized)) {
+                    library.add(item.normalized);
+                    addedCount++;
+                }
+            });
+            
+            saveUserData();
+            updateStats();
+            
+            // 清空新增项目列表
+            newUniqueItems = [];
+            document.getElementById('resultsSection').style.display = 'none';
+            
+            showNotification(`成功添加 ${addedCount} 个项目到主库！`, 'success');
+        }
+        
+        // 添加单个项目到主库
+        function addSingleToCurrentLibrary(item) {
+            const normalized = normalizeItem(item, currentCompareType);
+            const library = getCompareLibrary();
+            
+            if (!library.has(normalized)) {
+                library.add(normalized);
+                saveUserData();
+                updateStats();
+                
+                // 从新增项目列表中移除
+                newUniqueItems = newUniqueItems.filter(i => i.original !== item);
+                
+                // 刷新显示
+                if (newUniqueItems.length > 0) {
+                    const duplicateItems = [];
+                    displayComparisonResults(newUniqueItems, duplicateItems);
+                } else {
+                    document.getElementById('resultsSection').style.display = 'none';
+                }
+                
+                showNotification('项目已添加到主库！', 'success');
+            } else {
+                showNotification('该项目已存在于主库中！', 'info');
+            }
+        }
+        
+        // 导出新增项目
+        function exportNewItems() {
+            if (newUniqueItems.length === 0) {
+                showNotification('没有新增项目可导出！', 'warning');
+                return;
+            }
+            
+            const items = newUniqueItems.map(item => item.original);
+            const content = items.join('\n');
+            const timestamp = new Date().toISOString().slice(0,10);
+            const typeName = currentCompareType === 'twitter' ? '推特ID' : '群组链接';
+            const filename = `${currentUser.name}_新增${typeName}_${timestamp}_${items.length}个.txt`;
+            
+            downloadFile(content, filename, 'text/plain');
+            showNotification('新增项目已导出！', 'success');
+        }
+        
+        // 复制新增项目
+        function copyNewItems() {
+            if (newUniqueItems.length === 0) {
+                showNotification('没有新增项目可复制！', 'warning');
+                return;
+            }
+            
+            const items = newUniqueItems.map(item => item.original);
+            copyToClipboard(items.join('\n'));
+            showNotification('新增项目已复制到剪贴板！', 'success');
+        }
+        
+        // 清空对比
+        function clearComparison() {
+            document.getElementById('newLinksInput').value = '';
+            document.getElementById('newLinksLineCount').textContent = '0';
+            document.getElementById('resultsSection').style.display = 'none';
+            newUniqueItems = [];
+            showNotification('对比已清空！', 'info');
+        }
+        
+        // 辅助函数
+        function parseItems(text) {
+            let items = text.split(/\r?\n/).map(item => item.trim());
+            
+            // 应用处理设置
+            if (document.getElementById('removeEmpty')?.checked) {
+                items = items.filter(item => item !== '');
+            }
+            
+            if (document.getElementById('trimSpaces')?.checked) {
+                items = items.map(item => item.trim());
+            }
+            
+            if (document.getElementById('toLowerCase')?.checked) {
+                items = items.map(item => item.toLowerCase());
+            }
+            
+            return items;
+        }
+        
+        function normalizeItem(item, type) {
+            let normalized = item.trim();
+            
+            if (type === 'twitter') {
+                // 推特ID处理：移除@符号，转换为小写
+                normalized = normalized.replace(/^@/, '');
+                if (document.getElementById('toLowerCase')?.checked) {
+                    normalized = normalized.toLowerCase();
+                }
+            } else {
+                // 群组链接处理：标准化URL
+                if (!normalized.startsWith('http')) {
+                    normalized = 'https://' + normalized;
+                }
+                // 移除末尾斜杠
+                normalized = normalized.replace(/\/$/, '');
+            }
+            
+            return normalized;
+        }
+        
+        // 复制到剪贴板
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+        
+        // 复制单个项目
+        function copySingleItem(item) {
+            copyToClipboard(item);
+            showNotification('项目已复制！', 'success');
+        }
+        
+        // 下载文件
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // 显示加载动画
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+        
+        // 显示通知
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <div class="notification-icon">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                </div>
+                <div>${message}</div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // 显示通知
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 10);
+            
+            // 隐藏通知
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+        
+        // 生成新增管理页面
+        function generateNewItemsPage() {
+            const newLinksTab = document.getElementById('newLinksTab');
+            
+            let content = `
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-plus-circle"></i>
+                        新增项目管理
+                    </div>
+                    <div class="card-badge" id="newLinksTabBadge">${newUniqueItems.length} 个项目</div>
+                </div>
+                <div class="card-body">
+            `;
+            
+            if (newUniqueItems.length === 0) {
+                content += `
+                    <div style="text-align: center; padding: 60px 20px;">
+                        <div style="font-size: 64px; color: #c3cfe2; margin-bottom: 20px;">
+                            <i class="fas fa-inbox"></i>
+                        </div>
+                        <h3 style="color: #6c757d; margin-bottom: 10px;">暂无新增项目</h3>
+                        <p style="color: #adb5bd;">请先到"去重对比"页面进行对比操作</p>
+                        <button class="btn btn-primary" onclick="switchTab('compare')" style="margin-top: 20px;">
+                            <i class="fas fa-arrow-right"></i>
+                            前往对比页面
+                        </button>
+                    </div>
+                `;
+            } else {
+                const typeName = currentCompareType === 'twitter' ? '推特ID' : '群组链接';
+                
+                content += `
+                    <div class="new-links-header">
+                        <div>
+                            <div style="font-size: 16px; font-weight: 600; color: var(--dark-color);">新增${typeName}列表</div>
+                            <div style="font-size: 14px; color: #6c757d; margin-top: 5px;">共 ${newUniqueItems.length} 个项目</div>
+                        </div>
+                        <div class="filter-bar">
+                            <div class="search-box">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" id="searchInput" placeholder="搜索项目..." onkeyup="filterItems()">
+                            </div>
+                            <button class="btn btn-light" onclick="selectAllItems()">
+                                <i class="fas fa-check-square"></i>
+                                全选
+                            </button>
+                            <button class="btn btn-light" onclick="deselectAllItems()">
+                                <i class="far fa-square"></i>
+                                取消
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px; padding: 10px 15px; background: var(--light-color); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span id="selectedCount">已选择 0 个项目</span>
+                        </div>
+                        <div class="action-buttons" style="margin: 0; gap: 10px;">
+                            <button class="btn btn-success" onclick="exportSelectedItems()">
+                                <i class="fas fa-download"></i>
+                                导出选中
+                            </button>
+                            <button class="btn btn-primary" onclick="copySelectedItems()">
+                                <i class="fas fa-copy"></i>
+                                复制选中
+                            </button>
+                            <button class="btn" onclick="addSelectedToCurrentLibrary()" style="background: #4cc9f0; color: white;">
+                                <i class="fas fa-plus"></i>
+                                添加到主库
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div style="max-height: 400px; overflow-y: auto; border: 2px solid #e9ecef; border-radius: 10px; padding: 15px;">
+                        <div id="newItemsListContainer">
+                `;
+                
+                newUniqueItems.forEach((item, index) => {
+                    content += `
+                        <div class="link-item new" data-index="${index}">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" class="item-checkbox" ${item.selected ? 'checked' : ''} onchange="toggleItemSelection(${index})">
+                                <span style="flex: 1;">${item.original}</span>
+                            </div>
+                            <div class="link-actions">
+                                <button class="link-action-btn" onclick="copySingleItem('${item.original.replace(/'/g, "\\'")}')" title="复制">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button class="link-action-btn" onclick="addSingleToCurrentLibrary('${item.original.replace(/'/g, "\\'")}')" title="添加到主库">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                content += `
+                        </div>
+                    </div>
+                    
+                    <div class="export-panel" id="exportPanel">
+                        <div style="font-weight: 600; margin-bottom: 15px; color: var(--dark-color);">导出选项</div>
+                        <div class="export-options">
+                            <div class="export-option active" onclick="setExportFormat('text')">纯文本</div>
+                            <div class="export-option" onclick="setExportFormat('json')">JSON</div>
+                            <div class="export-option" onclick="setExportFormat('csv')">CSV</div>
+                            <div class="export-option" onclick="setExportFormat('html')">HTML</div>
+                        </div>
+                        <div style="margin-top: 20px; padding: 15px; background: white; border-radius: 8px;">
+                            <div style="font-size: 12px; color: #6c757d; margin-bottom: 10px;">预览：</div>
+                            <div id="exportPreview" style="font-size: 12px; font-family: 'Consolas', monospace; max-height: 100px; overflow-y: auto; padding: 10px; background: var(--light-color); border-radius: 6px;"></div>
+                        </div>
+                        <div class="action-buttons" style="margin-top: 20px;">
+                            <button class="btn btn-success" onclick="exportWithFormat()">
+                                <i class="fas fa-file-export"></i>
+                                导出文件
+                            </button>
+                            <button class="btn btn-primary" onclick="copyWithFormat()">
+                                <i class="fas fa-clipboard"></i>
+                                复制到剪贴板
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            content += `</div>`;
+            newLinksTab.innerHTML = content;
+            
+            // 更新徽章
+            document.getElementById('newLinksTabBadge').textContent = `${newUniqueItems.length} 个项目`;
+            updateSelectedCount();
+        }
+        
+        // 新增管理相关函数
+        function toggleItemSelection(index) {
+            newUniqueItems[index].selected = !newUniqueItems[index].selected;
+            updateSelectedCount();
+        }
+        
+        function selectAllItems() {
+            newUniqueItems.forEach((item, index) => {
+                item.selected = true;
+            });
+            updateItemCheckboxes();
+            updateSelectedCount();
+        }
+        
+        function deselectAllItems() {
+            newUniqueItems.forEach((item, index) => {
+                item.selected = false;
+            });
+            updateItemCheckboxes();
+            updateSelectedCount();
+        }
+        
+        function updateItemCheckboxes() {
+            document.querySelectorAll('.item-checkbox').forEach((checkbox, index) => {
+                checkbox.checked = newUniqueItems[index].selected;
+            });
+        }
+        
+        function updateSelectedCount() {
+            const selectedCount = newUniqueItems.filter(item => item.selected).length;
+            if (document.getElementById('selectedCount')) {
+                document.getElementById('selectedCount').textContent = `已选择 ${selectedCount} 个项目`;
+            }
+        }
+        
+        function filterItems() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const items = document.querySelectorAll('#newItemsListContainer .link-item');
+            
+            items.forEach(item => {
+                const itemText = item.querySelector('span').textContent.toLowerCase();
+                item.style.display = itemText.includes(searchText) ? '' : 'none';
+            });
+        }
+        
+        function exportSelectedItems() {
+            const selectedItems = newUniqueItems.filter(item => item.selected);
+            if (selectedItems.length === 0) {
+                showNotification('请先选择要导出的项目！', 'warning');
+                return;
+            }
+            
+            // 显示导出面板
+            document.getElementById('exportPanel').classList.add('show');
+            updateExportPreview();
+        }
+        
+        function copySelectedItems() {
+            const selectedItems = newUniqueItems.filter(item => item.selected).map(item => item.original);
+            if (selectedItems.length === 0) {
+                showNotification('请先选择要复制的项目！', 'warning');
+                return;
+            }
+            
+            copyToClipboard(selectedItems.join('\n'));
+            showNotification('已复制选中项目到剪贴板！', 'success');
+        }
+        
+        function addSelectedToCurrentLibrary() {
+            const selectedItems = newUniqueItems.filter(item => item.selected);
+            if (selectedItems.length === 0) {
+                showNotification('请先选择要添加的项目！', 'warning');
+                return;
+            }
+            
+            const library = getCompareLibrary();
+            let addedCount = 0;
+            
+            selectedItems.forEach(item => {
+                if (!library.has(item.normalized)) {
+                    library.add(item.normalized);
+                    addedCount++;
+                }
+            });
+            
+            saveUserData();
+            updateStats();
+            
+            // 从列表中移除已添加的项目
+            newUniqueItems = newUniqueItems.filter(item => !item.selected);
+            
+            // 刷新页面
+            generateNewItemsPage();
+            
+            showNotification(`成功添加 ${addedCount} 个项目到主库！`, 'success');
+        }
+        
+        function setExportFormat(format) {
+            currentExportFormat = format;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.export-option').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 更新预览
+            updateExportPreview();
+        }
+        
+        function updateExportPreview() {
+            const selectedItems = newUniqueItems.filter(item => item.selected).map(item => item.original);
+            if (selectedItems.length === 0) return;
+            
+            let previewContent = '';
+            
+            switch(currentExportFormat) {
+                case 'text':
+                    previewContent = selectedItems.join('\n');
+                    break;
+                case 'json':
+                    previewContent = JSON.stringify(selectedItems, null, 2);
+                    break;
+                case 'csv':
+                    const typeName = currentCompareType === 'twitter' ? '推特ID' : '群组链接';
+                    previewContent = `${typeName}\n` + selectedItems.map(item => `"${item}"`).join('\n');
+                    break;
+                case 'html':
+                    const title = currentCompareType === 'twitter' ? '推特ID列表' : '群组链接列表';
+                    previewContent = selectedItems.map(item => `<li>${item}</li>`).join('\n');
+                    previewContent = `<h3>${title}</h3>\n<ul>\n${previewContent}\n</ul>`;
+                    break;
+            }
+            
+            if (document.getElementById('exportPreview')) {
+                document.getElementById('exportPreview').textContent = previewContent;
+            }
+        }
+        
+        function exportWithFormat() {
+            const selectedItems = newUniqueItems.filter(item => item.selected).map(item => item.original);
+            if (selectedItems.length === 0) return;
+            
+            let content = '';
+            let extension = '.txt';
+            let mimeType = 'text/plain';
+            const typeName = currentCompareType === 'twitter' ? '推特ID' : '群组链接';
+            const timestamp = new Date().toISOString().slice(0,10);
+            
+            switch(currentExportFormat) {
+                case 'text':
+                    content = selectedItems.join('\n');
+                    extension = '.txt';
+                    mimeType = 'text/plain';
+                    break;
+                case 'json':
+                    content = JSON.stringify(selectedItems, null, 2);
+                    extension = '.json';
+                    mimeType = 'application/json';
+                    break;
+                case 'csv':
+                    content = `${typeName}\n` + selectedItems.map(item => `"${item}"`).join('\n');
+                    extension = '.csv';
+                    mimeType = 'text/csv';
+                    break;
+                case 'html':
+                    content = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${typeName}列表</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { color: #333; }
+        ul { list-style-type: none; padding: 0; }
+        li { padding: 8px; margin: 5px 0; background: #f5f5f5; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>${typeName}列表</h1>
+    <ul>
+        ${selectedItems.map(item => `<li>${item}</li>`).join('\n')}
+    </ul>
+</body>
+</html>`;
+                    extension = '.html';
+                    mimeType = 'text/html';
+                    break;
+            }
+            
+            const filename = `${currentUser.name}_${typeName}_${timestamp}_${selectedItems.length}个${extension}`;
+            
+            downloadFile(content, filename, mimeType);
+            showNotification('文件已开始下载！', 'success');
+        }
+        
+        function copyWithFormat() {
+            const selectedItems = newUniqueItems.filter(item => item.selected).map(item => item.original);
+            if (selectedItems.length === 0) return;
+            
+            let content = '';
+            
+            switch(currentExportFormat) {
+                case 'text':
+                    content = selectedItems.join('\n');
+                    break;
+                case 'json':
+                    content = JSON.stringify(selectedItems, null, 2);
+                    break;
+                case 'csv':
+                    const typeName = currentCompareType === 'twitter' ? '推特ID' : '群组链接';
+                    content = `${typeName}\n` + selectedItems.map(item => `"${item}"`).join('\n');
+                    break;
+                case 'html':
+                    content = selectedItems.map(item => `<li>${item}</li>`).join('\n');
+                    break;
+            }
+            
+            copyToClipboard(content);
+            showNotification('已复制到剪贴板！', 'success');
+        }
+        
+        // 设置相关函数
+        function loadSettings() {
+            if (!currentUser) return;
+            
+            const settingsKey = `userSettings_${currentUser.id}`;
+            const saved = localStorage.getItem(settingsKey);
+            
+            if (saved) {
+                const settings = JSON.parse(saved);
+                if (document.getElementById('themeColor')) {
+                    document.getElementById('themeColor').value = settings.themeColor || 'default';
+                }
+                if (document.getElementById('language')) {
+                    document.getElementById('language').value = settings.language || 'zh';
+                }
+                if (document.getElementById('dataRetention')) {
+                    document.getElementById('dataRetention').value = settings.dataRetention || '30';
+                }
+                if (document.getElementById('notifySuccess')) {
+                    document.getElementById('notifySuccess').checked = settings.notifySuccess !== false;
+                }
+                if (document.getElementById('notifyError')) {
+                    document.getElementById('notifyError').checked = settings.notifyError !== false;
+                }
+                if (document.getElementById('notifyInfo')) {
+                    document.getElementById('notifyInfo').checked = settings.notifyInfo || false;
+                }
+            }
+        }
+        
+        function saveSettings() {
+            if (!currentUser) return;
+            
+            const settings = {
+                themeColor: document.getElementById('themeColor').value,
+                language: document.getElementById('language').value,
+                dataRetention: document.getElementById('dataRetention').value,
+                notifySuccess: document.getElementById('notifySuccess').checked,
+                notifyError: document.getElementById('notifyError').checked,
+                notifyInfo: document.getElementById('notifyInfo').checked,
+                savedAt: new Date().toISOString()
+            };
+            
+            const settingsKey = `userSettings_${currentUser.id}`;
+            localStorage.setItem(settingsKey, JSON.stringify(settings));
+            showNotification('设置已保存！', 'success');
+        }
+        
+        function resetSettings() {
+            if (confirm('确定要恢复默认设置吗？')) {
+                document.getElementById('themeColor').value = 'default';
+                document.getElementById('language').value = 'zh';
+                document.getElementById('dataRetention').value = '30';
+                document.getElementById('notifySuccess').checked = true;
+                document.getElementById('notifyError').checked = true;
+                document.getElementById('notifyInfo').checked = false;
+                
+                if (currentUser) {
+                    const settingsKey = `userSettings_${currentUser.id}`;
+                    localStorage.removeItem(settingsKey);
+                }
+                
+                showNotification('设置已恢复为默认值！', 'success');
+            }
+        }
+        
+        function clearUserData() {
+            if (confirm('确定要清除您的个人数据吗？包括所有主库和设置。此操作不可恢复！')) {
+                if (currentUser) {
+                    // 清除用户数据
+                    const userDataKey = `userData_${currentUser.id}`;
+                    localStorage.removeItem(userDataKey);
+                    
+                    // 清除用户设置
+                    const settingsKey = `userSettings_${currentUser.id}`;
+                    localStorage.removeItem(settingsKey);
+                    
+                    // 重置内存中的数据
+                    twitterLibrary.clear();
+                    groupLibrary.clear();
+                    newUniqueItems = [];
+                    
+                    // 更新界面
+                    updateStats();
+                    updateLibraryDisplay();
+                    
+                    // 如果当前在新增管理页面，刷新它
+                    if (document.getElementById('newLinksTab').classList.contains('active')) {
+                        generateNewItemsPage();
+                    }
+                    
+                    showNotification('个人数据已清除！', 'success');
+                }
+            }
+        }
+        
+        // 用户管理功能（仅管理员）
+        function generateUsersPage() {
+            const usersTab = document.getElementById('usersTab');
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            
+            let content = `
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-users"></i>
+                        用户管理
+                    </div>
+                    <div class="card-badge">${users.length} 个用户</div>
+                </div>
+                <div class="card-body">
+                    <div class="user-list" id="userList">
+            `;
+            
+            if (users.length === 0) {
+                content += `
+                    <div style="text-align: center; padding: 60px 20px;">
+                        <div style="font-size: 64px; color: #c3cfe2; margin-bottom: 20px;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 style="color: #6c757d; margin-bottom: 10px;">暂无其他用户</h3>
+                        <p style="color: #adb5bd;">您是第一个注册的用户，默认成为管理员</p>
+                    </div>
+                `;
+            } else {
+                users.forEach(user => {
+                    const isCurrentUser = user.id === currentUser.id;
+                    const isAdmin = user.role === 'admin';
+                    
+                    content += `
+                        <div class="user-card">
+                            <div class="user-card-avatar" style="background: ${user.avatarColor}">
+                                ${user.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div class="user-card-info">
+                                <div class="user-card-name">
+                                    ${user.name}
+                                    ${isAdmin ? '<span style="background: var(--primary-color); color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-left: 8px;">管理员</span>' : ''}
+                                    ${isCurrentUser ? '<span style="background: var(--success-color); color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-left: 8px;">当前用户</span>' : ''}
+                                </div>
+                                <div class="user-card-email">${user.email}</div>
+                                <div class="user-card-stats">
+                                    <div class="user-card-stat">
+                                        <div class="user-card-stat-value">${user.stats.twitterCount}</div>
+                                        <div class="user-card-stat-label">推特ID</div>
+                                    </div>
+                                    <div class="user-card-stat">
+                                        <div class="user-card-stat-value">${user.stats.groupCount}</div>
+                                        <div class="user-card-stat-label">群组链接</div>
+                                    </div>
+                                    <div class="user-card-stat">
+                                        <div class="user-card-stat-value">${formatDate(user.stats.lastActive)}</div>
+                                        <div class="user-card-stat-label">最后活跃</div>
+                                    </div>
+                                </div>
+                            </div>
+                            ${!isCurrentUser ? `
+                                <div class="admin-buttons">
+                                    <button class="admin-btn edit" onclick="editUser('${user.id}')">
+                                        <i class="fas fa-edit"></i> 编辑
+                                    </button>
+                                    <button class="admin-btn delete" onclick="deleteUser('${user.id}')">
+                                        <i class="fas fa-trash"></i> 删除
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+            }
+            
+            content += `
+                    </div>
+                </div>
+            `;
+            
+            usersTab.innerHTML = content;
+        }
+        
+        // 编辑用户
+        function editUser(userId) {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.id === userId);
+            
+            if (user) {
+                const newRole = user.role === 'admin' ? 'user' : 'admin';
+                user.role = newRole;
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                showNotification(`已将 ${user.name} 设为${newRole === 'admin' ? '管理员' : '普通用户'}`, 'success');
+                generateUsersPage();
+            }
+        }
+        
+        // 删除用户
+        function deleteUser(userId) {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.id === userId);
+            
+            if (!user) return;
+            
+            if (confirm(`确定要删除用户 ${user.name} (${user.email}) 吗？此操作将永久删除该用户的所有数据！`)) {
+                // 删除用户数据
+                const userDataKey = `userData_${userId}`;
+                localStorage.removeItem(userDataKey);
+                
+                // 删除用户设置
+                const settingsKey = `userSettings_${userId}`;
+                localStorage.removeItem(settingsKey);
+                
+                // 从用户列表中删除
+                const updatedUsers = users.filter(u => u.id !== userId);
+                localStorage.setItem('users', JSON.stringify(updatedUsers));
+                
+                showNotification('用户已删除！', 'success');
+                generateUsersPage();
+            }
+        }
+        
+        // 格式化日期
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = now - date;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            
+            if (days === 0) {
+                return '今天';
+            } else if (days === 1) {
+                return '昨天';
+            } else if (days < 7) {
+                return `${days}天前`;
+            } else {
+                return date.toLocaleDateString('zh-CN');
+            }
+        }
+    </script>
+</body>
+</html>
